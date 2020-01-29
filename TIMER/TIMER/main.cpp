@@ -26,6 +26,34 @@ char colon[] = ":";
 
  ISR(TIMER1_COMPA_vect){
 	 PORTD ^= (1<<PIND5);
+	 second++;
+	 if(second > 59){
+		 second = 0;
+		 minute++;
+		 if(minute > 59){
+			 minute=0;
+			 hour++;
+			 if(hour>23){
+				 hour = 0;
+			 }
+		 }
+	 }
+	 
+	 
+	 itoa(minute,minute_value,10);
+	 itoa(second,second_value,10);
+	 itoa(hour,hour_value,10);
+	 
+	 lcd.clear();
+	 lcd.send_string(hour_value);
+	 lcd.send_string(space);
+	 lcd.send_string(colon);
+	 lcd.send_string(space);
+	 lcd.send_string(minute_value);
+	 lcd.send_string(space);
+	 lcd.send_string(colon);
+	 lcd.send_string(space);
+	 lcd.send_string(second_value);
 	
 	 
  }
@@ -38,20 +66,23 @@ int main(void)
 	lcd.initialize();
 	char boot_string[] = "TIMER SYSTEM";
 	lcd.send_string(boot_string);
-	_delay_ms(1000);
-	lcd.clear();
+	
+	
 	
 	//enable CTC MODE
 	TCCR1B |= (1<<WGM12);
-	//set prescaler of 256 (count for 1 sec = 62500)
+	//set Prescaler of 256 (count for 1 sec = 62500)
 	TCCR1B |= (1<<CS12);
 	//OCR1A compare value
 	OCR1A = 3907;
+	//Initialize TCNT1 to zero
+	TCNT1 = 0;
 	//enable timer compare interrupt
-	TIMSK |= (OCIE1A);
+	TIMSK |= (1<<OCIE1A);
 	//set global interrupts
 	sei();
 	
+	_delay_ms(1000);
 	
 	
 	
@@ -59,8 +90,12 @@ int main(void)
     while (1) 
     {
 		
+		//UNCOMMMENT THIS BLOCK TO DO POLLED TIMER
+		//COMMENT OUT THE ISR SECTION
+		/*
 		if(TIFR & (1<<OCF1A)){
-			PORTD ^= (1<<PIND5);
+			
+			//PORTD ^= (1<<PIND5);
 			TIFR |= (1<<OCF1A);
 			second++;
 			if(second > 59){
@@ -92,6 +127,8 @@ int main(void)
 			lcd.send_string(second_value);
 			
 		}
+		*/
+		
 	}
 
 }
